@@ -52,7 +52,11 @@ def get_session():
     return current_app.extensions["db_session"]()
 
 
-def create_app(database_url: str | None = None, *, testing: bool = False) -> Flask:
+def create_app(
+    database_url: str | None = None,
+    *,
+    testing: bool = False,
+) -> Flask:
     app = Flask(__name__)
     app.config["TESTING"] = testing
 

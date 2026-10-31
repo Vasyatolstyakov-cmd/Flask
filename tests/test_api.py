@@ -5,7 +5,8 @@ from app import create_app
 
 @pytest.fixture()
 def client(tmp_path):
-    database_url = f"sqlite:///{tmp_path / 'test.db'}"
+    database_path = tmp_path / "test.db"
+    database_url = f"sqlite:///{database_path}"
     app = create_app(database_url, testing=True)
     with app.test_client() as test_client:
         yield test_client
@@ -37,7 +38,10 @@ def test_advertisement_crud(client):
     )
     assert patch_response.status_code == 200
     assert patch_response.get_json()["title"] == "Велосипед продан"
-    assert patch_response.get_json()["description"] == created["description"]
+    assert (
+        patch_response.get_json()["description"]
+        == created["description"]
+    )
 
     list_response = client.get("/advertisements")
     assert list_response.status_code == 200
@@ -51,7 +55,11 @@ def test_advertisement_crud(client):
 def test_put_replaces_all_editable_fields(client):
     client.post(
         "/advertisements",
-        json={"title": "Старый", "description": "Текст", "owner": "owner"},
+        json={
+            "title": "Старый",
+            "description": "Текст",
+            "owner": "owner",
+        },
     )
 
     response = client.put(
@@ -95,5 +103,9 @@ def test_create_validation(client, payload, expected_error):
 
 def test_not_found(client):
     assert client.get("/advertisements/999").status_code == 404
-    assert client.patch("/advertisements/999", json={"title": "Нет"}).status_code == 404
+    patch_response = client.patch(
+        "/advertisements/999",
+        json={"title": "Нет"},
+    )
+    assert patch_response.status_code == 404
     assert client.delete("/advertisements/999").status_code == 404
